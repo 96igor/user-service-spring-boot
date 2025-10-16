@@ -1,0 +1,62 @@
+# User Service (Spring Boot, Java 21, Maven)
+
+Простое Spring Boot приложение для управления пользователями. Использует H2 in-memory DB.
+
+## Требования
+- Java 21
+- Maven
+
+## Сборка и запуск
+```bash
+mvn clean package
+java -jar target/user-service-0.0.1-SNAPSHOT.jar
+Сервис будет доступен на http://localhost:8080.
+
+H2 консоль: http://localhost:8080/h2-console
+JDBC URL: jdbc:h2:mem:userdb, user: sa, password: (пусто)
+
+Эндпоинты
+POST /api/users — создать пользователя
+Request JSON:
+
+{
+  "firstName": "Ivan",
+  "lastName": "Ivanov",
+  "birthDate": "1990-05-10",
+  "email": "ivan@example.com"
+}
+Response: 201 Created, тело — созданный пользователь с полем ageInDays.
+
+GET /api/users/{id} — получить пользователя по id
+
+GET /api/users — список всех пользователей
+
+PUT /api/users/{id} — обновить пользователя (тот же формат, что для POST)
+
+DELETE /api/users/{id} — удалить пользователя
+
+Примеры curl
+Создать:
+
+curl -X POST http://localhost:8080/api/users \
+ -H "Content-Type: application/json" \
+ -d '{"firstName":"Ivan","lastName":"Ivanov","birthDate":"1990-05-10","email":"ivan@example.com"}'
+Получить:
+
+curl http://localhost:8080/api/users/1
+Тесты
+Запустить:
+
+mvn test
+Дизайнерские решения / пояснения
+ageInDays не хранится в БД — вычисляется динамически из birthDate (поле @Transient).
+
+Валидация через jakarta.validation на DTO уровне.
+
+H2 in-memory гарантирует запуск "из коробки".
+
+Обработчик ошибок возвращает удобные JSON-структуры.
+
+# 15. Доп. замечания и рекомендации
+- Поле `ageInDays` в JSON приходит из `User#getAgeInDays()` — так значение всегда актуально.
+- Для production: вынести схемы в миграции (Flyway/Liquibase), подключить реальную БД, добавить DTO-мэппинг (MapStruct), логирование, контрактные тесты.
